@@ -48,6 +48,7 @@ class ScreenCapture:
         self.last_capture_path = None
         self._stop_auto_capture = False
         self._auto_capture_thread = None
+        self.all_monitor_screenshots = []  # Store paths to all monitor screenshots
     
     def capture_screen(self, force=False):
         """Capture the current screen.
@@ -69,6 +70,9 @@ class ScreenCapture:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"screen_{timestamp}.{SCREEN_CAPTURE_FORMAT.lower()}"
         filepath = os.path.join(self.capture_dir, filename)
+        
+        # Reset the list of all monitor screenshots
+        self.all_monitor_screenshots = []
         
         # Capture screen based on the operating system
         success = False
@@ -114,7 +118,23 @@ class ScreenCapture:
                 # Get information about the monitors
                 monitors = sct.monitors
                 
-                # Skip the first monitor (which is the "all in one" monitor)
+                # Store paths to all captured screenshots
+                self.all_monitor_screenshots = []
+                
+                # First, capture the "all in one" monitor (entire desktop)
+                all_monitors = monitors[0]
+                sct_img = sct.grab(all_monitors)
+                img = Image.frombytes("RGB", sct_img.size, sct_img.bgra, "raw", "BGRX")
+                
+                # Save the all-monitors image as the main filepath
+                if SCREEN_CAPTURE_FORMAT.lower() in ["jpg", "jpeg"]:
+                    img.save(filepath, quality=SCREEN_CAPTURE_QUALITY, optimize=True)
+                else:
+                    img.save(filepath)
+                
+                self.all_monitor_screenshots.append(filepath)
+                
+                # Now capture each individual monitor
                 for i, monitor in enumerate(monitors[1:], 1):
                     # Take the screenshot
                     sct_img = sct.grab(monitor)
@@ -122,7 +142,7 @@ class ScreenCapture:
                     # Convert to PIL Image
                     img = Image.frombytes("RGB", sct_img.size, sct_img.bgra, "raw", "BGRX")
                     
-                    # Save the image
+                    # Save the image with monitor-specific filename
                     monitor_filename = filepath.replace(
                         f".{SCREEN_CAPTURE_FORMAT.lower()}", 
                         f"_monitor{i}.{SCREEN_CAPTURE_FORMAT.lower()}"
@@ -133,12 +153,7 @@ class ScreenCapture:
                     else:
                         img.save(monitor_filename)
                     
-                    # For the first monitor, also save with the original filename
-                    if i == 1:
-                        if SCREEN_CAPTURE_FORMAT.lower() in ["jpg", "jpeg"]:
-                            img.save(filepath, quality=SCREEN_CAPTURE_QUALITY, optimize=True)
-                        else:
-                            img.save(filepath)
+                    self.all_monitor_screenshots.append(monitor_filename)
                 
                 return True
         except Exception as e:
@@ -155,7 +170,10 @@ class ScreenCapture:
             bool: True if capture was successful, False otherwise.
         """
         try:
-            # Use the built-in screencapture command
+            # Reset the list of all monitor screenshots
+            self.all_monitor_screenshots = []
+            
+            # Use the built-in screencapture command to capture all screens
             cmd = [
                 "screencapture",
                 "-x",  # No sound
@@ -163,10 +181,36 @@ class ScreenCapture:
                 filepath
             ]
             subprocess.run(cmd, check=True)
+            self.all_monitor_screenshots.append(filepath)
             
-            # Compress the image if needed
+            # Now capture each screen individually
+            screens_info = subprocess.run(["system_profiler", "SPDisplaysDataType"], 
+                                         capture_output=True, text=True).stdout
+            
+            # Count the number of displays
+            display_count = screens_info.count("Display Type:")
+            
+            # Capture each display individually
+            for i in range(1, display_count + 1):
+                monitor_filename = filepath.replace(
+                    f".{SCREEN_CAPTURE_FORMAT.lower()}", 
+                    f"_monitor{i}.{SCREEN_CAPTURE_FORMAT.lower()}"
+                )
+                
+                cmd = [
+                    "screencapture",
+                    "-x",  # No sound
+                    "-D", str(i),  # Specify display number
+                    "-t", SCREEN_CAPTURE_FORMAT.lower(),
+                    monitor_filename
+                ]
+                subprocess.run(cmd, check=True)
+                self.all_monitor_screenshots.append(monitor_filename)
+            
+            # Compress the images if needed
             if SCREEN_CAPTURE_FORMAT.lower() in ["jpg", "jpeg"]:
-                self._compress_image(filepath)
+                for img_path in self.all_monitor_screenshots:
+                    self._compress_image(img_path)
             
             return True
         except Exception as e:
@@ -270,6 +314,14 @@ class ScreenCapture:
                 img.save(filepath, quality=SCREEN_CAPTURE_QUALITY, optimize=True)
         except Exception as e:
             print(f"Error compressing image: {e}")
+    
+    def get_all_screenshots(self):
+        """Get the paths to all captured screenshots (main and individual monitors).
+        
+        Returns:
+            list: List of paths to all captured screenshots.
+        """
+        return self.all_monitor_screenshots
     
     def get_latest_capture(self):
         """Get the path to the most recent screen capture.
@@ -443,265 +495,3 @@ if __name__ == "__main__":
             print(f"Screenshot saved to: {filepath}")
     else:
         run_auto_capture(args.interval, args.duration)
-
-class ScreenCapture:
-    """Class to handle screen capture functionality."""
-    
-    def __init__(self, session_id=None):
-        """Initialize the screen capture module.
-        
-        Args:
-            session_id (str, optional): Unique identifier for the current session.
-                If not provided, a timestamp-based ID will be generated.
-        """
-        self.session_id = session_id or datetime.now().strftime("%Y%m%d_%H%M%S")
-        self.capture_dir = os.path.join(SESSION_LOGS_DIR, self.session_id, "captures")
-        os.makedirs(self.capture_dir, exist_ok=True)
-        self.last_capture_time = 0
-        self.last_capture_path = None
-    
-    def capture_screen(self, force=False):
-        """Capture the current screen.
-        
-        Args:
-            force (bool): If True, capture regardless of the interval.
-                          If False, respect the SCREEN_CAPTURE_INTERVAL.
-        
-        Returns:
-            str: Path to the captured image file, or None if no capture was made.
-        """
-        current_time = time.time()
-        
-        # Check if enough time has passed since the last capture
-        if not force and (current_time - self.last_capture_time) < SCREEN_CAPTURE_INTERVAL:
-            return None
-        
-        # Generate filename based on timestamp
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"screen_{timestamp}.{SCREEN_CAPTURE_FORMAT.lower()}"
-        filepath = os.path.join(self.capture_dir, filename)
-        
-        # Capture screen based on the operating system
-        success = False
-        
-        if platform.system() == "Darwin":  # macOS
-            success = self._capture_macos(filepath)
-        elif platform.system() == "Windows":
-            success = self._capture_windows(filepath)
-        elif platform.system() == "Linux":
-            success = self._capture_linux(filepath)
-        
-        # If all methods fail, create a dummy image for testing
-        if not success:
-            success = self._create_dummy_image(filepath)
-        
-        if success:
-            self.last_capture_time = current_time
-            self.last_capture_path = filepath
-            return filepath
-        
-        return None
-    
-    def _capture_macos(self, filepath):
-        """Capture screen on macOS using screencapture command.
-        
-        Args:
-            filepath (str): Path to save the captured image.
-            
-        Returns:
-            bool: True if capture was successful, False otherwise.
-        """
-        try:
-            # Use the built-in screencapture command
-            cmd = [
-                "screencapture",
-                "-x",  # No sound
-                "-t", SCREEN_CAPTURE_FORMAT.lower(),
-                filepath
-            ]
-            subprocess.run(cmd, check=True)
-            
-            # Compress the image if needed
-            if SCREEN_CAPTURE_FORMAT.lower() in ["jpg", "jpeg"]:
-                self._compress_image(filepath)
-            
-            return True
-        except Exception as e:
-            print(f"Error capturing screen on macOS: {e}")
-            return False
-    
-    def _capture_windows(self, filepath):
-        """Capture screen on Windows using PIL.
-        
-        Args:
-            filepath (str): Path to save the captured image.
-            
-        Returns:
-            bool: True if capture was successful, False otherwise.
-        """
-        try:
-            print("Windows screen capture not implemented")
-            return False
-        except Exception as e:
-            print(f"Error capturing screen on Windows: {e}")
-            return False
-    
-    def _capture_linux(self, filepath):
-        """Capture screen on Linux using scrot or similar.
-        
-        Args:
-            filepath (str): Path to save the captured image.
-            
-        Returns:
-            bool: True if capture was successful, False otherwise.
-        """
-        try:
-            # Try using scrot if available
-            cmd = ["scrot", filepath]
-            subprocess.run(cmd, check=True)
-            
-            # Compress the image if needed
-            if SCREEN_CAPTURE_FORMAT.lower() in ["jpg", "jpeg"]:
-                self._compress_image(filepath)
-            
-            return True
-        except FileNotFoundError:
-            # If scrot is not available, try using import from ImageMagick
-            try:
-                cmd = ["import", "-window", "root", filepath]
-                subprocess.run(cmd, check=True)
-                
-                # Compress the image if needed
-                if SCREEN_CAPTURE_FORMAT.lower() in ["jpg", "jpeg"]:
-                    self._compress_image(filepath)
-                
-                return True
-            except Exception as e:
-                print(f"Error capturing screen on Linux with import: {e}")
-                return False
-        except Exception as e:
-            print(f"Error capturing screen on Linux: {e}")
-            return False
-    
-    def _create_dummy_image(self, filepath):
-        """Create a dummy image for testing purposes.
-        
-        Args:
-            filepath (str): Path to save the dummy image.
-            
-        Returns:
-            bool: True if creation was successful, False otherwise.
-        """
-        try:
-            # Create a simple colored image
-            width, height = 800, 600
-            img = Image.new('RGB', (width, height), color=(73, 109, 137))
-            
-            # Add some text
-            from PIL import ImageDraw
-            draw = ImageDraw.Draw(img)
-            text = "Focus Buddy - Test Image"
-            text_position = (width // 4, height // 2)
-            draw.text(text_position, text, fill=(255, 255, 255))
-            
-            # Save the image
-            if SCREEN_CAPTURE_FORMAT.lower() in ["jpg", "jpeg"]:
-                img.save(filepath, quality=SCREEN_CAPTURE_QUALITY, optimize=True)
-            else:
-                img.save(filepath)
-            
-            print("Created dummy test image since screen capture is not available")
-            return True
-        except Exception as e:
-            print(f"Error creating dummy image: {e}")
-            return False
-    
-    def _compress_image(self, filepath):
-        """Compress the image to reduce file size.
-        
-        Args:
-            filepath (str): Path to the image file.
-        """
-        try:
-            with Image.open(filepath) as img:
-                img.save(filepath, quality=SCREEN_CAPTURE_QUALITY, optimize=True)
-        except Exception as e:
-            print(f"Error compressing image: {e}")
-    
-    def get_latest_capture(self):
-        """Get the path to the most recent screen capture.
-        
-        Returns:
-            str: Path to the latest capture, or None if no captures exist.
-        """
-        return self.last_capture_path
-    
-    def get_capture_as_base64(self, filepath=None):
-        """Convert a screen capture to base64 for use with APIs.
-        
-        Args:
-            filepath (str, optional): Path to the image file.
-                If not provided, uses the latest capture.
-                
-        Returns:
-            str: Base64-encoded image data, or None if the file doesn't exist.
-        """
-        filepath = filepath or self.last_capture_path
-        
-        if not filepath or not os.path.exists(filepath):
-            return None
-        
-        try:
-            with open(filepath, "rb") as image_file:
-                encoded_string = base64.b64encode(image_file.read()).decode("utf-8")
-                return encoded_string
-        except Exception as e:
-            print(f"Error encoding image to base64: {e}")
-            return None
-    
-    def cleanup_old_captures(self, max_captures=10):
-        """Remove old captures to save disk space.
-        
-        Args:
-            max_captures (int): Maximum number of captures to keep.
-        """
-        try:
-            captures = sorted([
-                os.path.join(self.capture_dir, f) 
-                for f in os.listdir(self.capture_dir) 
-                if f.startswith("screen_") and os.path.isfile(os.path.join(self.capture_dir, f))
-            ])
-            
-            # Remove oldest captures if we have more than max_captures
-            if len(captures) > max_captures:
-                for old_capture in captures[:-max_captures]:
-                    os.remove(old_capture)
-        except Exception as e:
-            print(f"Error cleaning up old captures: {e}")
-
-
-def capture_screen_once(output_dir=None):
-    """Utility function to capture the screen once without creating a session.
-    
-    Args:
-        output_dir (str, optional): Directory to save the capture.
-            If not provided, uses a temporary directory.
-            
-    Returns:
-        str: Path to the captured image file, or None if capture failed.
-    """
-    if output_dir is None:
-        output_dir = tempfile.mkdtemp()
-    
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"screen_{timestamp}.{SCREEN_CAPTURE_FORMAT.lower()}"
-    filepath = os.path.join(output_dir, filename)
-    
-    # Create a temporary ScreenCapture instance
-    screen_capture = ScreenCapture()
-    
-    # Override the capture directory
-    screen_capture.capture_dir = output_dir
-    
-    # Force a capture
-    return screen_capture.capture_screen(force=True)

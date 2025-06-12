@@ -2,9 +2,12 @@
 Simple script to run automatic screen capture
 """
 
-from utils.screen_capture import run_auto_capture
+from utils.screen_capture import capture_screen_once
 
 if __name__ == "__main__":
-    # Run automatic screen capture every 5 minutes
-    # Press Ctrl+C to stop
-    run_auto_capture(interval_minutes=5)
+    # Capture screen once and print the path
+    filepath = capture_screen_once()
+    if filepath:
+        print(f"Screenshot saved to: {filepath}")
+    else:
+        print("Failed to capture screenshot")

@@ -4,16 +4,14 @@ An AI-powered productivity assistant that helps you maintain focus during deep w
 
 ## 🎯 Overview
 
-Focus Buddy is a Streamlit web application designed for coders, researchers, and students who want to extend their deep work sessions to 120+ minutes. It leverages OpenAI's GPT-4o Realtime API and GPT-4 Vision to create an intelligent work companion that understands your context and helps you stay focused.
+Focus Buddy is a Streamlit web application designed for coders, researchers, and students who want to extend their deep work sessions to 120+ minutes. It leverages OpenAI's GPT-4 Vision to create an intelligent work companion that understands your context and helps you stay focused.
 
 ## ✨ Key Features
 
-- **Real-time Voice Assistant**: Engage in natural conversations with GPT-4o Realtime API
 - **Screen Context Analysis**: Periodic screen captures analyzed by GPT-4 Vision
-- **Audio Environment Monitoring**: Combines microphone and system audio for comprehensive context
 - **Smart Focus Reminders**: Timely, context-aware nudges to maintain productivity
 - **Session Tracking**: Monitor your productivity metrics and work patterns
-- **Customizable Settings**: Adjust check-in frequency, prompt style, and more
+- **Customizable Settings**: Adjust check-in frequency, capture interval, and more
 
 ## 🗂️ Project Structure
 
@@ -23,9 +21,7 @@ focus_buddy/
 ├── app.py                      # Main Streamlit application entry point
 │
 ├── core/
-│   ├── realtime_assistant.py   # Handles OpenAI GPT-4o Realtime API integration
 │   ├── vision_analyzer.py      # Processes screen captures with GPT-4 Vision
-│   ├── audio_manager.py        # Audio routing and processing
 │   └── session_tracker.py      # Tracks productivity metrics and session data
 │
 ├── utils/
@@ -35,7 +31,6 @@ focus_buddy/
 │
 ├── ui/
 │   ├── dashboard.py            # Dashboard components for Streamlit
-│   ├── settings.py             # Settings UI components
 │   └── session_view.py         # Session visualization components
 │
 ├── data/
@@ -54,8 +49,7 @@ focus_buddy/
 ### Prerequisites
 
 - Python 3.8+
-- OpenAI API key with access to GPT-4o Realtime API and GPT-4 Vision
-- For audio routing: BlackHole (macOS) or similar virtual audio device
+- OpenAI API key with access to GPT-4 Vision
 
 ### Installation
 
@@ -81,23 +75,16 @@ focus_buddy/
 
 ## 🔧 Core Components
 
-### 1. Realtime Assistant
-Handles WebRTC connection to OpenAI's Realtime API for voice conversations.
-
-### 2. Vision Analyzer
+### 1. Vision Analyzer
 Processes screen captures and extracts context using GPT-4 Vision.
 
-### 3. Audio Manager
-Manages audio routing, combining microphone and system audio for comprehensive context.
-
-### 4. Session Tracker
+### 2. Session Tracker
 Tracks and summarizes work sessions, providing productivity metrics and insights.
 
 ## 📊 UI Components
 
-- **Dashboard**: Overview of current and past sessions
-- **Settings**: Configure application behavior
-- **Session View**: Detailed view of individual work sessions
+- **Dashboard**: Overview of current and past sessions with activity timeline and screenshots
+- **Session View**: Detailed view of individual work sessions with metrics and history
 
 ## 🛠️ Utilities
 
@@ -108,14 +95,14 @@ Tracks and summarizes work sessions, providing productivity metrics and insights
 ## 📝 Usage
 
 1. Start a new focus session from the dashboard
-2. Allow screen capture and microphone access
+2. Allow screen capture access
 3. Begin your work while Focus Buddy monitors in the background
 4. Receive gentle nudges and reminders to stay on task
 5. Review your session metrics when finished
 
 ## 🔒 Privacy
 
-- All screen captures and audio are processed through OpenAI's APIs
+- All screen captures are processed through OpenAI's APIs
 - No data is stored permanently beyond your local session logs
 - You can configure the frequency and type of monitoring to suit your comfort level
 
@@ -125,5 +112,5 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 🙏 Acknowledgements
 
-- OpenAI for providing the GPT-4o Realtime API and GPT-4 Vision API
+- OpenAI for providing the GPT-4 Vision API
 - Streamlit for the web application framework

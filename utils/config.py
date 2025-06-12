@@ -27,18 +27,12 @@ except Exception as e:
 # OpenAI API settings
 OPENAI_API_BASE = "https://api.openai.com/v1"
 GPT4O_MODEL = "gpt-4o"  # For vision analysis
-GPT4O_REALTIME_MODEL = "gpt-4o-realtime-preview"  # For realtime conversations
 
 # Screen capture settings
 SCREEN_CAPTURE_INTERVAL = 60  # Seconds between screen captures
 MAX_SCREEN_CAPTURES = 10  # Maximum number of screen captures to store
 SCREEN_CAPTURE_QUALITY = 70  # JPEG quality (0-100)
 SCREEN_CAPTURE_FORMAT = "JPEG"  # Image format
-
-# Audio settings
-AUDIO_SAMPLE_RATE = 16000  # Hz
-AUDIO_CHANNELS = 1  # Mono
-AUDIO_CHUNK_SIZE = 1024  # Bytes
 
 # Session settings
 MIN_SESSION_DURATION = 5 * 60  # Minimum session duration in seconds (5 minutes)
