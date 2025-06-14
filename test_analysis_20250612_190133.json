@@ -1,0 +1,13 @@
+{
+  "content": "The user is working in Visual Studio Code, focusing on a Python script named `integration_test.py`. They appear to be testing a vision analysis tool, as indicated by the execution of `test_vision_analyzer.py` and references to analyzing screenshots. This work seems productive, as it involves coding and testing software functionality, with signs of progress shown by successful script execution.",
+  "timestamp": "2025-06-12T19:01:33.263311",
+  "image_path": "/Users/kapilwanaskar/Downloads/focus_buddy/data/session_logs/20250612_190127/captures/screen_20250612_190127.jpeg",
+  "is_productive": true,
+  "detected_apps": [
+    "Visual Studio Code"
+  ],
+  "detected_activities": [
+    "coding",
+    "analyzing"
+  ]
+}

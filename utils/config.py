@@ -29,7 +29,7 @@ OPENAI_API_BASE = "https://api.openai.com/v1"
 GPT4O_MODEL = "gpt-4o"  # For vision analysis
 
 # Screen capture settings
-SCREEN_CAPTURE_INTERVAL = 60  # Seconds between screen captures
+SCREEN_CAPTURE_INTERVAL = 10  # Seconds between screen captures (default 10 seconds)
 MAX_SCREEN_CAPTURES = 10  # Maximum number of screen captures to store
 SCREEN_CAPTURE_QUALITY = 70  # JPEG quality (0-100)
 SCREEN_CAPTURE_FORMAT = "JPEG"  # Image format
@@ -37,7 +37,7 @@ SCREEN_CAPTURE_FORMAT = "JPEG"  # Image format
 # Session settings
 MIN_SESSION_DURATION = 5 * 60  # Minimum session duration in seconds (5 minutes)
 DEFAULT_SESSION_DURATION = 120 * 60  # Default session duration in seconds (120 minutes)
-CHECK_IN_INTERVAL = 120  # Seconds between check-ins
+CHECK_IN_INTERVAL = 60  # Seconds between check-ins (default 1 minute)
 
 # UI settings
 UI_REFRESH_RATE = 1  # Seconds between UI refreshes

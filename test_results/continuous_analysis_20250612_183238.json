@@ -1,0 +1,52 @@
+[
+  {
+    "content": "Analysis of all connected screens:\n\n--- Main Screen ---\nThe user is working in Visual Studio Code on a Python project related to \"focus_buddy.\" They appear to be writing and running integration tests, as indicated by the file name \"integration_test.py\" and the use of `unittest` framework. This activity suggests productive work, with successful execution denoted by the \"Completed in 0.5s\" message, indicating progress in testing the application with real API calls.\n\n--- Screen 1 ---\nThe user is working in Visual Studio Code, focusing on writing and editing Python code for an application named \"FOCUS_BUDDY.\" They are specifically working on an integration test script, using unit testing to verify parts of their application, which involves making real API calls. This appears to be productive work, as the user is actively developing and testing software, with progress indicated by successful test completion logs and terminal output.\n\n",
+    "timestamp": "2025-06-12T18:32:05.825287",
+    "image_path": "/Users/kapilwanaskar/Downloads/focus_buddy/data/session_logs/20250612_183200/captures/screen_20250612_183200.jpeg",
+    "is_productive": true,
+    "detected_apps": [
+      "Terminal",
+      "Visual Studio Code"
+    ],
+    "detected_activities": [
+      "writing",
+      "editing"
+    ],
+    "all_screenshots": [
+      "/Users/kapilwanaskar/Downloads/focus_buddy/data/session_logs/20250612_183200/captures/screen_20250612_183200.jpeg",
+      "/Users/kapilwanaskar/Downloads/focus_buddy/data/session_logs/20250612_183200/captures/screen_20250612_183200_monitor1.jpeg"
+    ]
+  },
+  {
+    "content": "Analysis of all connected screens:\n\n--- Main Screen ---\nThe user is working in Visual Studio Code on a Python project. They are editing and running an integration test script (`integration_test.py`) that involves API calls to GPT-4. This appears to be productive work focused on software development, and they have completed a test run in 0.5 seconds with no visible errors, indicating progress.\n\n--- Screen 1 ---\nThe user is working in Visual Studio Code on a Python integration test script for an application. They are running integration tests using `unittest` with real API calls to GPT-40, indicating productive, development-related work. The terminal output shows successful completion of updates and test runs, suggesting progress without apparent challenges.\n\n",
+    "timestamp": "2025-06-12T18:32:20.685153",
+    "image_path": "/Users/kapilwanaskar/Downloads/focus_buddy/data/session_logs/20250612_183215/captures/screen_20250612_183215.jpeg",
+    "is_productive": true,
+    "detected_apps": [
+      "Terminal",
+      "Visual Studio Code"
+    ],
+    "detected_activities": [
+      "editing"
+    ],
+    "all_screenshots": [
+      "/Users/kapilwanaskar/Downloads/focus_buddy/data/session_logs/20250612_183215/captures/screen_20250612_183215.jpeg",
+      "/Users/kapilwanaskar/Downloads/focus_buddy/data/session_logs/20250612_183215/captures/screen_20250612_183215_monitor1.jpeg"
+    ]
+  },
+  {
+    "content": "Analysis of all connected screens:\n\n--- Main Screen ---\nThe user is working in Visual Studio Code, focusing on developing and running integration tests for a Python application named \"Focus Buddy.\" They are executing a test script (`integration_test.py`) which involves real API calls to an AI model (likely GPT-4). This activity appears to be productive work, with tests completing successfully, indicating progress in the development process.\n\n--- Screen 1 ---\nThe user is working in Visual Studio Code on a Python script named `integration_test.py`. They are conducting integration tests for an application that involves real API calls to GPT-4. This activity appears to be productive work related to software development, with successful execution of tests indicated in the terminal.\n\n",
+    "timestamp": "2025-06-12T18:32:34.523147",
+    "image_path": "/Users/kapilwanaskar/Downloads/focus_buddy/data/session_logs/20250612_183229/captures/screen_20250612_183229.jpeg",
+    "is_productive": true,
+    "detected_apps": [
+      "Terminal",
+      "Visual Studio Code"
+    ],
+    "detected_activities": [],
+    "all_screenshots": [
+      "/Users/kapilwanaskar/Downloads/focus_buddy/data/session_logs/20250612_183229/captures/screen_20250612_183229.jpeg",
+      "/Users/kapilwanaskar/Downloads/focus_buddy/data/session_logs/20250612_183229/captures/screen_20250612_183229_monitor1.jpeg"
+    ]
+  }
+]

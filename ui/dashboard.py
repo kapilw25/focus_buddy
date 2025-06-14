@@ -121,11 +121,15 @@ def render_activity_timeline(analysis_history=None):
             # Determine status
             status = "Productive" if analysis.get("is_productive", False) else "Distraction"
             
+            # Determine if this was automatic or manual
+            capture_type = "Automatic" if analysis.get("auto_capture", False) else "Manual"
+            
             # Add to history data
             history_data.append({
                 "Time": timestamp.strftime("%H:%M:%S"),
                 "Activity": summary,
                 "Status": status,
+                "Type": capture_type,
                 "Apps": ", ".join(analysis.get("detected_apps", [])) if analysis.get("detected_apps") else "None"
             })
         

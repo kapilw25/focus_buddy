@@ -292,7 +292,12 @@ class SessionTracker:
         """
         current_time = time.time()
         time_since_last_check_in = current_time - self.last_check_in_time
-        return time_since_last_check_in >= CHECK_IN_INTERVAL
+        
+        # Return True if enough time has passed since the last check-in
+        if time_since_last_check_in >= CHECK_IN_INTERVAL:
+            self.last_check_in_time = current_time  # Update the last check-in time
+            return True
+        return False
     
     def is_inactive(self, inactive_threshold: int = 300) -> bool:
         """Check if the session is inactive.

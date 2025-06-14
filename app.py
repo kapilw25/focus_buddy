@@ -57,8 +57,10 @@ if "auto_end_session" not in st.session_state:
     st.session_state.auto_end_session = False
 if "stop_capture_thread" not in st.session_state:
     st.session_state.stop_capture_thread = False
-if "capture_thread" not in st.session_state:
-    st.session_state.capture_thread = None
+if "last_capture_time" not in st.session_state:
+    st.session_state.last_capture_time = 0
+if "auto_end_triggered" not in st.session_state:
+    st.session_state.auto_end_triggered = False
 
 def start_session():
     """Start a new focus session."""
@@ -79,13 +81,7 @@ def start_session():
     st.session_state.session_tracker = session_tracker
     st.session_state.analysis_history = []
     st.session_state.stop_capture_thread = False
-    
-    # Start the capture thread
-    st.session_state.capture_thread = threading.Thread(
-        target=capture_and_analyze_loop,
-        daemon=True
-    )
-    st.session_state.capture_thread.start()
+    st.session_state.last_capture_time = 0
     
     # Add initial tags
     session_tracker.add_tag("focus_session")
@@ -103,8 +99,6 @@ def end_session():
     
     # Stop the capture thread
     st.session_state.stop_capture_thread = True
-    if st.session_state.capture_thread:
-        st.session_state.capture_thread.join(timeout=2.0)
     
     # Generate session summary
     if st.session_state.session_tracker:
@@ -137,42 +131,67 @@ def end_session():
     st.session_state.vision_analyzer = None
     st.session_state.session_tracker = None
 
-def capture_and_analyze_loop():
-    """Background thread to capture and analyze screens periodically."""
-    while not st.session_state.stop_capture_thread and st.session_state.session_active:
-        try:
-            # Capture screenshot
-            screenshot_path = st.session_state.screen_capture.capture_screen(force=True)
+def capture_and_analyze_once(auto_capture=False):
+    """Capture and analyze screen once when called from the main thread.
+    
+    Args:
+        auto_capture (bool): Whether this is an automatic capture or manual.
+    """
+    if not st.session_state.session_active:
+        return
+        
+    try:
+        print(f"Attempting to capture screenshot... (auto={auto_capture})")
+        # Capture screenshot
+        screenshot_path = st.session_state.screen_capture.capture_screen(force=True)
+        
+        if screenshot_path:
+            print(f"Screenshot captured: {screenshot_path}")
+            # Analyze the screenshot
+            print("Analyzing screenshot with GPT-4o...")
+            analysis = st.session_state.vision_analyzer.analyze_image(screenshot_path)
             
-            if screenshot_path:
-                # Analyze the screenshot
-                analysis = st.session_state.vision_analyzer.analyze_image(screenshot_path)
-                
-                # Store the analysis
-                st.session_state.last_analysis = analysis
-                st.session_state.analysis_history.append(analysis)
-                
-                # Update the session tracker
-                st.session_state.session_tracker.add_screen_analysis(analysis)
-                
-                # Limit history size
-                if len(st.session_state.analysis_history) > 20:
-                    st.session_state.analysis_history = st.session_state.analysis_history[-20:]
+            # Mark if this was an automatic capture
+            analysis["auto_capture"] = auto_capture
             
-            # Sleep for the specified interval
-            time.sleep(st.session_state.capture_interval)
+            print("Analysis complete, updating session state...")
+            # Store the analysis
+            st.session_state.last_analysis = analysis
+            st.session_state.analysis_history.append(analysis)
+            
+            # Update the session tracker
+            st.session_state.session_tracker.add_screen_analysis(analysis)
+            
+            # Limit history size
+            if len(st.session_state.analysis_history) > 20:
+                st.session_state.analysis_history = st.session_state.analysis_history[-20:]
+            
+            print("Analysis added to session state")
+            st.session_state.last_capture_time = time.time()
             
             # Check if we should auto-end the session
             if st.session_state.auto_end_session and st.session_state.session_start_time:
                 elapsed_time = (datetime.now() - st.session_state.session_start_time).total_seconds()
                 if elapsed_time >= st.session_state.session_duration:
-                    # We need to end the session from the main thread, so we'll just set a flag
                     st.session_state.auto_end_triggered = True
-                    break
             
-        except Exception as e:
-            st.error(f"Error in capture thread: {str(e)}")
-            time.sleep(5)  # Sleep briefly before retrying
+            return True
+        else:
+            print("Failed to capture screenshot")
+            return False
+    except Exception as e:
+        print(f"Error in capture and analyze: {str(e)}")
+        return False
+
+def check_capture_interval():
+    """Check if it's time to capture a screenshot based on the interval."""
+    if not st.session_state.session_active:
+        return False
+        
+    current_time = time.time()
+    time_since_last_capture = current_time - st.session_state.last_capture_time
+    
+    return time_since_last_capture >= st.session_state.capture_interval
 
 def render_settings():
     """Render settings in the sidebar."""
@@ -251,15 +270,11 @@ def display_sidebar():
         with st.spinner("Capturing and analyzing your screen..."):
             if st.session_state.session_active:
                 # Use session components
-                screenshot_path = st.session_state.screen_capture.capture_screen(force=True)
-                if screenshot_path:
-                    analysis = st.session_state.vision_analyzer.analyze_image(screenshot_path)
-                    st.session_state.last_analysis = analysis
-                    st.session_state.analysis_history.append(analysis)
-                    st.session_state.session_tracker.add_screen_analysis(analysis)
+                success = capture_and_analyze_once(auto_capture=False)
+                if success:
                     st.success("Screen captured and analyzed!")
                 else:
-                    st.error("Failed to capture screen.")
+                    st.error("Failed to capture or analyze screen.")
             else:
                 # Use temporary components
                 analysis = capture_and_analyze_screen()
@@ -287,10 +302,46 @@ def display_sidebar():
     st.sidebar.markdown("---")
     st.sidebar.caption("© 2025 Focus Buddy")
 
+def auto_capture_thread():
+    """Background thread for automatic screen capture and check-ins."""
+    if not st.session_state.session_active:
+        return
+    
+    # Get current time
+    current_time = time.time()
+    
+    # Check if it's time for a screen capture
+    if current_time - st.session_state.last_capture_time >= st.session_state.capture_interval:
+        print(f"Auto capture triggered at {datetime.now().strftime('%H:%M:%S')}")
+        capture_success = capture_and_analyze_once(auto_capture=True)
+        if capture_success:
+            print(f"Auto capture successful at {datetime.now().strftime('%H:%M:%S')}")
+            st.session_state.last_capture_time = current_time
+            # Add a note to indicate this was an automatic capture
+            if st.session_state.session_tracker:
+                st.session_state.session_tracker.add_note("Automatic screen capture")
+    
+    # Check if it's time for a check-in
+    if st.session_state.session_tracker and st.session_state.session_tracker.should_check_in():
+        print(f"Auto check-in triggered at {datetime.now().strftime('%H:%M:%S')}")
+        # Perform check-in
+        check_in_data = {
+            "timestamp": datetime.now().isoformat(),
+            "type": "automatic",
+            "question": "Automatic check-in",
+            "response": "System generated check-in"
+        }
+        st.session_state.session_tracker.add_check_in(check_in_data)
+        print(f"Auto check-in completed at {datetime.now().strftime('%H:%M:%S')}")
+
 def main():
     """Main application entry point."""
     # Display the sidebar
     display_sidebar()
+    
+    # Run the auto capture thread in the background
+    if st.session_state.session_active:
+        auto_capture_thread()
     
     # Display the main content
     if st.session_state.session_active:

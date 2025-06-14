@@ -1,0 +1,18 @@
+{
+  "content": "Analysis of all connected screens:\n\n--- Main Screen ---\nThe user is working in Visual Studio Code, focusing on editing and running an integration test file named `integration_test.py`. This task appears to be productive work, as they are coding and testing a Python application, potentially involving API calls. Signs of progress include the successful completion of a test in 0.5 seconds.\n\n--- Screen 1 ---\nThe user is working in Visual Studio Code, focused on a Python script named `integration_test.py`, which seems to relate to testing and possibly integrates with APIs, as suggested by mentions of \"API calls\" and specific test cases. The terminal shows the test completed successfully, indicating progress in their task. This appears to be productive work involving software development and integration testing.\n\n",
+  "timestamp": "2025-06-12T18:31:55.610742",
+  "image_path": "/Users/kapilwanaskar/Downloads/focus_buddy/data/session_logs/20250612_183151/captures/screen_20250612_183151.jpeg",
+  "is_productive": true,
+  "detected_apps": [
+    "Terminal",
+    "Visual Studio Code"
+  ],
+  "detected_activities": [
+    "coding",
+    "editing"
+  ],
+  "all_screenshots": [
+    "/Users/kapilwanaskar/Downloads/focus_buddy/data/session_logs/20250612_183151/captures/screen_20250612_183151.jpeg",
+    "/Users/kapilwanaskar/Downloads/focus_buddy/data/session_logs/20250612_183151/captures/screen_20250612_183151_monitor1.jpeg"
+  ]
+}
